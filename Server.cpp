@@ -29,13 +29,25 @@ void Server::start() {
     // Start listening to incoming connections
     listen(serverSocket, MAX_CONNECTED_CLIENTS);
 
+    // Define the client socket's structures
+    struct sockaddr_in clientAddress;
+    socklen_t clientAddressLen;
+
     while (true) {
         // Accept new clients connections
         cout << "Waiting for the first client to connect..." << endl;
-        int firstClientSocket = getClientSocket();
+        int firstClientSocket = accept(serverSocket, (struct sockaddr *)&clientAddress, &clientAddressLen);
+        cout << "client connected" << endl;
+        if (firstClientSocket == -1) {
+            throw "Error on accept first client";
+        }
         cout << "Waiting for the second client to connect..." << endl;
-        int secondClientSocket = getClientSocket();
-
+        int secondClientSocket = accept(serverSocket, (struct sockaddr *)&clientAddress, &clientAddressLen);
+        cout << "second client connected" << endl;
+        if (secondClientSocket == -1) {
+            //close(firstClientSocket);
+            throw "Error on accept second client";
+        }
         int message=FIRST_PLAYER;
         int n=write(firstClientSocket,&message,sizeof(message));
         if(!writeCheck(n))
@@ -57,24 +69,17 @@ void Server::handleClient(int firstClientSocket,int secondClientSocket) {
         int n = read(firstClientSocket, &row, sizeof(row));
         if(!readCheck(n))
           return;
-        if(row==GAME_OVER){
-            cout << "Game over";
-            int status=GAME_OVER;
-            n=write(secondClientSocket,&status,sizeof(status));
-            writeCheck(n);
-            return;
-        }
         n = read(firstClientSocket, &col, sizeof(col));
         if(!readCheck(n))
             return;
-        cout << "Got move: " << row << " " << col << endl;
+        cout << "Got move: " << row+1 << " " << col+1 << endl;
         n=write(secondClientSocket,&row,sizeof(row));
         if(!writeCheck(n))
             return;
         n=write(secondClientSocket,&col,sizeof(col));
         if(!writeCheck(n))
             return;
-        cout << "Sent move";
+        cout << "Sent move"<<endl;
         swapSockets(&firstClientSocket,&secondClientSocket);
     }
 }
@@ -106,18 +111,6 @@ bool Server::writeCheck(int n) {
         return false;
     }
     return true;
-}
-
-int Server::getClientSocket() {
-    struct sockaddr_in clientAddress;
-    socklen_t clientAddressLen;
-    int socket = accept(serverSocket, (struct sockaddr *)&clientAddress, &clientAddressLen);
-    cout << "client connected" << endl;
-    if (socket == -1) {
-        //close(firstClientSocket);
-        throw "Error on accept second player";
-    }
-    return socket;
 }
 
 void Server::swapSockets(int *Socket1, int *Socket2) {

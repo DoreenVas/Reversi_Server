@@ -4,7 +4,6 @@
 
 #define FIRST_PLAYER 1
 #define SECOND_PLAYER 2
-#define GAME_OVER 3
 
 class Server {
 public:
@@ -17,7 +16,6 @@ private:
     void handleClient(int firstClientSocket,int secondClientSocket);
     bool readCheck(int n);
     bool writeCheck(int n);
-    int getClientSocket();
     //switch the client we currently read from by swapping the sockets
     void swapSockets(int *Socket1, int *Socket2);
 
