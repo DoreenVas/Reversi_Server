@@ -8,6 +8,7 @@
 using namespace std;
 
 #define MAX_CONNECTED_CLIENTS 2
+
 Server::Server(int port): port(port), serverSocket(0) {
     cout << "Server" << endl;
 }
@@ -45,7 +46,7 @@ void Server::start() {
         int secondClientSocket = accept(serverSocket, (struct sockaddr *)&clientAddress, &clientAddressLen);
         cout << "second client connected" << endl;
         if (secondClientSocket == -1) {
-            //close(firstClientSocket);
+            close(firstClientSocket);
             throw "Error on accept second client";
         }
         int message=FIRST_PLAYER;
@@ -68,7 +69,7 @@ void Server::handleClient(int firstClientSocket,int secondClientSocket) {
     while (true) {
         int n = read(firstClientSocket, &row, sizeof(row));
         if(!readCheck(n))
-          return;
+            return;
         n = read(firstClientSocket, &col, sizeof(col));
         if(!readCheck(n))
             return;
