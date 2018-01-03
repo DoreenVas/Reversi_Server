@@ -1,17 +1,23 @@
 
 #include "Server.h"
+#include "CommandsManager.h"
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
 #include <string.h>
-#include <iostream>
-using namespace std;
+#include <sstream>
 
-#define MAX_CONNECTED_CLIENTS 2
 
-Server::Server(int port): port(port), serverSocket(0) {
+#define MAX_CONNECTED_CLIENTS 10
+#define MAX_COMMAND_LEN 50
+
+static void *acceptClients(void *);
+static void *handleClient(void *);
+
+Server::Server(int port): port(port), serverSocket(0), serverThreadId(0) {
     cout << "Server" << endl;
 }
+
 void Server::start() {
     // Create a socket point
     serverSocket = socket(AF_INET, SOCK_STREAM, 0);
@@ -29,94 +35,70 @@ void Server::start() {
     }
     // Start listening to incoming connections
     listen(serverSocket, MAX_CONNECTED_CLIENTS);
+    pthread_create(&serverThreadId,NULL,&acceptClients,(void *)serverSocket);
+}
+
+static void * acceptClients(void *socket) {
+    long serverSocket=(long)socket;
 
     // Define the client socket's structures
     struct sockaddr_in clientAddress;
-    socklen_t clientAddressLen;
+    socklen_t clientAddressLen=sizeof(clientAddress);
 
     while (true) {
-        // Accept new clients connections
-        cout << "Waiting for the first client to connect..." << endl;
-        int firstClientSocket = accept(serverSocket, (struct sockaddr *)&clientAddress, &clientAddressLen);
-        cout << "client connected" << endl;
-        if (firstClientSocket == -1) {
-            throw "Error on accept first client";
-        }
-        cout << "Waiting for the second client to connect..." << endl;
-        int secondClientSocket = accept(serverSocket, (struct sockaddr *)&clientAddress, &clientAddressLen);
-        cout << "second client connected" << endl;
-        if (secondClientSocket == -1) {
-            close(firstClientSocket);
-            throw "Error on accept second client";
-        }
-        int message=FIRST_PLAYER;
-        int n=write(firstClientSocket,&message,sizeof(message));
-        if(!writeCheck(n))
-            return;
-        message=SECOND_PLAYER;
-        n=write(secondClientSocket,&message,sizeof(message));
-        if(!writeCheck(n))
-            return;
-        handleClient(firstClientSocket,secondClientSocket);
-        // Close communication with the clients
-        close(firstClientSocket);
-        close(secondClientSocket);
+        cout<<"waiting for client connections..."<<endl;
+
+        //Accept a new client connection
+        long clientSocket=accept(serverSocket,(struct sockaddr*)&clientAddress,&clientAddressLen);
+        cout<<"client connected"<<endl;
+        if (clientSocket == -1)
+            throw "Error on accept";
+
+        pthread_t threadId;
+        pthread_create(&threadId,NULL,&handleClient,(void *)clientSocket);
     }
 }
 
-void Server::handleClient(int firstClientSocket,int secondClientSocket) {
-    int row,col;
-    while (true) {
-        int n = read(firstClientSocket, &row, sizeof(row));
-        if(!readCheck(n))
-            return;
-        n = read(firstClientSocket, &col, sizeof(col));
-        if(!readCheck(n))
-            return;
-        cout << "Got move: " << row+1 << " " << col+1 << endl;
-        n=write(secondClientSocket,&row,sizeof(row));
-        if(!writeCheck(n))
-            return;
-        n=write(secondClientSocket,&col,sizeof(col));
-        if(!writeCheck(n))
-            return;
-        cout << "Sent move"<<endl;
-        swapSockets(&firstClientSocket,&secondClientSocket);
-    }
-}
+static void *handleClient(void *socket) {
+    long clientSocket=(long)socket;
+    char commandStr[MAX_COMMAND_LEN];
 
+    //Read the command from the socket
+    int n =read(clientSocket,commandStr,MAX_COMMAND_LEN);
+    if (n == -1){
+        cout<<"Error reading command"<<endl;
+        return NULL;
+    }
+    if (n == 0){
+        cout << "Client disconnected" << endl;
+        return NULL;
+    }
+    cout<<"Received command"<<commandStr<<endl;
+
+    //Split the command string to the command name and the arguments
+    string str(commandStr);
+    istringstream stream(str);
+    string command;
+    stream >> command;
+    vector<string> args;
+    while(stream){
+        string arg;
+        stream >> arg;
+        args.push_back(arg);
+    }
+
+    CommandsManager::getInstance()->executeCommand(command,args,clientSocket);
+    return NULL;
+}
 
 void Server::stop() {
-    close(serverSocket);
+    vector<string> args;
+    string command="close_server";
+    CommandsManager *commandsManager= CommandsManager::getInstance();
+    commandsManager->executeCommand(command,args,serverSocket);
+    delete commandsManager;
+    pthread_cancel(serverThreadId);
+    cout<<"Server stopped"<<endl;
 }
 
-bool Server::readCheck(int n) {
-    if (n==-1){
-        cout << "Error reading from socket" << endl;
-        return false;
-    }
-    if (n == 0) {
-        cout << "Client disconnected" << endl;
-        return false;
-    }
-    return true;
-}
-
-bool Server::writeCheck(int n) {
-    if (n==-1){
-        cout << "Error writing to socket" << endl;
-        return false;
-    }
-    if (n == 0) {
-        cout << "Client disconnected" << endl;
-        return false;
-    }
-    return true;
-}
-
-void Server::swapSockets(int *Socket1, int *Socket2) {
-    int temp=*Socket1;
-    *Socket1=*Socket2;
-    *Socket2=temp;
-}
 

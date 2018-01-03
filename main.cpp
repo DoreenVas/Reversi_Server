@@ -8,7 +8,7 @@ int main() {
     //get the port from the setting file
     int port;
     ifstream settingFile;
-    settingFile.open("../server_settings.txt");
+    settingFile.open("server_settings.txt");
     if(!settingFile.is_open()){
         cout<<"failed to open file";
         exit(0);
@@ -19,9 +19,16 @@ int main() {
     Server server(port);
     try {
         server.start();
+
+        cout<<"Enter exit to stop server"<<endl;
+        string str;
+        do {
+            cin >> str;
+        } while (str!="exit");
+        server.stop();
+
     } catch (const char *msg) {
         cout << "Cannot start server. Reason: " << msg << endl;
-        server.stop();
         exit(-1);
     }
 }
