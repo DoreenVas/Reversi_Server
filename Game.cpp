@@ -5,6 +5,7 @@
 
 #define FIRST_PLAYER 1
 #define SECOND_PLAYER 2
+#define FAIL -1
 
 using namespace std;
 
@@ -50,10 +51,8 @@ void Game::play() {
 }
 
 void Game::addSecondPlayer(int secondClientSocket) {
-    if(secondClientSocket == 0) {
         this->secondClientSocket = secondClientSocket;
         playersStatus=TWO_PLAYER;
-    }
 }
 
 void Game::endGame() {
@@ -97,7 +96,7 @@ int Game::getPlayersStatus() const {
 }
 
 void Game::serverStopMsg() {
-    string msg="The server disconnected, please try to reconnect ";
+    int msg=FAIL;
     if(playersStatus=ONE_PLAYER) {
         write(firstClientSocket, &msg, sizeof(msg));//no check, doesn't matter
     }

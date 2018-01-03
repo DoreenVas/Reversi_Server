@@ -8,7 +8,7 @@ int main() {
     //get the port from the setting file
     int port;
     ifstream settingFile;
-    settingFile.open("server_settings.txt");
+    settingFile.open("../server_settings.txt");
     if(!settingFile.is_open()){
         cout<<"failed to open file";
         exit(0);

@@ -15,6 +15,7 @@ public:
     bool joinGame(string gameName,int socket);
     void closeAllGames();
     vector <string> getListOfActiveGames();
+    Game* getGameByName(string nameGame);
 
 private:
     //A singleton

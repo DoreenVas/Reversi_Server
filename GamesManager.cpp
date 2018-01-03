@@ -5,7 +5,6 @@
 GamesManager* GamesManager::instance=0;
 pthread_mutex_t GamesManager::lockMap;
 pthread_mutex_t GamesManager::lockInstance;
-static void *startGame(void *);
 
 GamesManager* GamesManager::getInstance() {
     if (instance == 0){
@@ -47,14 +46,12 @@ vector<string> GamesManager::getListOfActiveGames() {
 }
 
 bool GamesManager::joinGame(string gameName, int socket) {
-    pthread_t  thread;
     pthread_mutex_lock(&lockMap);
     map<string,Game *>::iterator it;
     for(it=gamesMap.begin();it!=gamesMap.end();it++) {
         if (it->first.compare(gameName)==0){
             if(it->second->getPlayersStatus()==ONE_PLAYER){
                 it->second->addSecondPlayer(socket);
-                pthread_create(&thread,NULL,&startGame,(void *)it->second);
                 pthread_mutex_unlock(&lockMap);
                 return true;
             }
@@ -83,7 +80,12 @@ void GamesManager::closeAllGames() {
     }
 }
 
-static void *startGame(void *game1) {
-    Game *game=(Game *)game1;
-    game->play();
+Game *GamesManager::getGameByName(string nameGame) {
+    map<string,Game *>::iterator it;
+    for(it=gamesMap.begin();it!=gamesMap.end();it++) {
+        if(it->first.compare(nameGame)==0)
+            return it->second;
+    }
 }
+
+

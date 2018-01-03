@@ -64,7 +64,7 @@ static void *handleClient(void *socket) {
     char commandStr[MAX_COMMAND_LEN];
 
     //Read the command from the socket
-    int n =read(clientSocket,commandStr,MAX_COMMAND_LEN);
+    int n =read(clientSocket,commandStr,sizeof(commandStr));
     if (n == -1){
         cout<<"Error reading command"<<endl;
         return NULL;
@@ -73,10 +73,11 @@ static void *handleClient(void *socket) {
         cout << "Client disconnected" << endl;
         return NULL;
     }
-    cout<<"Received command"<<commandStr<<endl;
+    cout<<"Received command ";
 
     //Split the command string to the command name and the arguments
     string str(commandStr);
+    cout<<str<<endl;
     istringstream stream(str);
     string command;
     stream >> command;

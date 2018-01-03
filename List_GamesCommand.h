@@ -8,6 +8,9 @@
 class List_GamesCommand: public Command {
 public:
     virtual void execute(vector<string> args,int socket=0);
+
+private:
+    void sendName(string &name,int socket);
 };
 
 
