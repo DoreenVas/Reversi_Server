@@ -9,11 +9,26 @@
 
 using namespace std;
 
+/*****************************************************************************************************
+* class name: Game
+* description: game control
+******************************************************************************************************/
 class Game {
 public:
+/***************************************************************************************
+* constructor name: Game
+* the input: int socket and string name
+* the function operation:initializes the variables accordingly, the status is one player.
+****************************************************************************************/
     Game (int firstClientSocket,string name);
+/***************************************************************************************
+* function name: addSecondPlayer
+* the input: int socket
+* the output: none
+* the function operation:changes the status to two players and initializes the
+* secondClientSocket with the one we received.
+****************************************************************************************/
     void addSecondPlayer(int secondClientSocket);
-
 /***************************************************************************************
 * function name: play
 * the input: none
@@ -22,11 +37,27 @@ public:
 * between them with swapSockets and repeats
 ****************************************************************************************/
     void play();
-
+/***************************************************************************************
+* function name: endGame
+* the input: none
+* the output: none
+* the function operation:closes the sockets and calls GamesManager deleteGame
+****************************************************************************************/
     void endGame();
+/***************************************************************************************
+* function name: endGame
+* the input: none
+* the output: none
+* the function operation:sends the sockets FAIL message;
+****************************************************************************************/
     void serverStopMsg();
+/***************************************************************************************
+* function name: getPlayersStatus
+* the input: none
+* the output: int status
+* the function operation:returns 10 if there is one player and 11 if there are two.
+****************************************************************************************/
     int getPlayersStatus() const;
-
 /***************************************************************************************
 * function name: readCheck
 * the input: int n representing the value of the read

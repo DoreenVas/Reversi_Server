@@ -27,7 +27,8 @@ public:
 * function name: start
 * the input: none
 * the output: none
-* the function operation:creates the socket point, listens and accepts clients(2 at a time) than handles them
+* the function operation:creates the socket point, listens and accepts clients each gets a thread
+ * and continue to the handleClient function.
 ****************************************************************************************/
     void start();
 
@@ -35,7 +36,8 @@ public:
 * function name: stop
 * the input: none
 * the output: none
-* the function operation:closes the server socket
+* the function operation:closes the server socket,the server thread, then sends the
+* CommandsManager a close_server command and deletes the CommandsManager instance.
 ****************************************************************************************/
     void stop();
 
