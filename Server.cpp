@@ -59,8 +59,8 @@ static void * acceptClients(void *server1) {
             throw "Error on accept";
 
         Task *task=new Task(handleClient,(void *)clientSocket);
-        server->taskVec.push_back(task);
-        server->pool.addTask(task);
+        server->addTaskToVector(task);
+        server->addTaskToPool(task);
     }
 }
 
@@ -113,6 +113,14 @@ void Server::stop() {
 
 int Server::getServerSocket() const {
     return serverSocket;
+}
+
+void Server::addTaskToVector(Task *task) {
+    taskVec.push_back(task);
+}
+
+void Server::addTaskToPool(Task *task) {
+    pool.addTask(task);
 }
 
 

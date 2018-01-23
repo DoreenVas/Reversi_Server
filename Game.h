@@ -72,6 +72,9 @@ public:
 * the function operation:directly checking the value of n to see if it equals -1 or 0
 ****************************************************************************************/
     bool writeCheck(int n);
+
+    void setThread(pthread_t i);
+
 private:
 /***************************************************************************************
 * function name: swapSockets
@@ -84,6 +87,7 @@ private:
     int firstClientSocket, secondClientSocket;
     string roomName;
     int playersStatus;
+    pthread_t thread;
 };
 
 

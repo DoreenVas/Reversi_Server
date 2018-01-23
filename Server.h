@@ -38,19 +38,43 @@ public:
 * function name: stop
 * the input: none
 * the output: none
-* the function operation:closes the server socket,the server thread, then sends the
-* CommandsManager a close_server command and deletes the CommandsManager instance.
+* the function operation:closes the server socket,the server thread, then sends the CommandsManager a
+ * close_server command and deletes the CommandsManager instance. also deletes the tasks and terminates the pool.
 ****************************************************************************************/
     void stop();
 
+/***************************************************************************************
+* function name: getServerSocket
+* the input: none
+* the output: int
+* the function operation: direct access
+****************************************************************************************/
     int getServerSocket() const;
-    ThreadPool pool;
-    vector <Task*> taskVec;
+
+/***************************************************************************************
+* function name: addTaskToPool
+* the input: Task *task
+* the output: none
+* the function operation: direct access
+****************************************************************************************/
+    void addTaskToPool(Task *task);
+
+/***************************************************************************************
+* function name: addTaskToVector
+* the input: Task *task
+* the output: none
+* the function operation: direct access
+****************************************************************************************/
+    void addTaskToVector(Task *task);
+
 
 private:
+
     int port;
     int serverSocket;
     pthread_t serverThreadId;
+    ThreadPool pool;
+    vector <Task*> taskVec;
 
 };
 #endif //SERVER_SERVER_H

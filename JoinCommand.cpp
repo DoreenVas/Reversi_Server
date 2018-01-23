@@ -27,8 +27,9 @@ void JoinCommand::execute(vector<string> args, int socket) {
             cout << "Client disconnected" << endl;
             close(socket);
         }
-        pthread_t  thread;
+        pthread_t thread;
         Game *game=gamesManager->getGameByName(gameName);
+        game->setThread(thread);
         pthread_create(&thread,NULL,&startGame,(void *)game);
     }
 }

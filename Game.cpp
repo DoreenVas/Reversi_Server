@@ -56,8 +56,13 @@ void Game::addSecondPlayer(int secondClientSocket) {
 }
 
 void Game::endGame() {
-    close(firstClientSocket);
-    close(secondClientSocket);
+    if(playersStatus==ONE_PLAYER)
+        close(firstClientSocket);
+    else{
+        close(firstClientSocket);
+        close(secondClientSocket);
+    }
+    pthread_cancel(thread);
     GamesManager::getInstance()->deleteGame(roomName,this);
 }
 
@@ -97,12 +102,16 @@ int Game::getPlayersStatus() const {
 
 void Game::serverStopMsg() {
     int msg=FAIL;
-    if(playersStatus=ONE_PLAYER) {
+    if(playersStatus==ONE_PLAYER) {
         write(firstClientSocket, &msg, sizeof(msg));//no check, doesn't matter
     }
     else{
         write(firstClientSocket, &msg, sizeof(msg));
         write(secondClientSocket, &msg, sizeof(msg));
     }
+}
+
+void Game::setThread(pthread_t thread1) {
+    thread=thread1;
 }
 
