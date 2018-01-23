@@ -4,17 +4,20 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
-#include <string.h>
 #include <sstream>
+#include <strings.h>
 
 
+using namespace std;
+
+#define THREADS_NUM 5
 #define MAX_CONNECTED_CLIENTS 10
 #define MAX_COMMAND_LEN 50
 
 static void *acceptClients(void *);
 static void *handleClient(void *);
 
-Server::Server(int port): port(port), serverSocket(0), serverThreadId(0) {
+Server::Server(int port): port(port), serverSocket(0), serverThreadId(0),pool(THREADS_NUM) {
     cout << "Server" << endl;
 }
 
@@ -35,11 +38,12 @@ void Server::start() {
     }
     // Start listening to incoming connections
     listen(serverSocket, MAX_CONNECTED_CLIENTS);
-    pthread_create(&serverThreadId,NULL,&acceptClients,(void *)serverSocket);
+    pthread_create(&serverThreadId,NULL,&acceptClients,(void *)this);
 }
 
-static void * acceptClients(void *socket) {
-    long serverSocket=(long)socket;
+static void * acceptClients(void *server1) {
+    Server *server=(Server*)server1;
+    long serverSocket=(long)server->getServerSocket();
 
     // Define the client socket's structures
     struct sockaddr_in clientAddress;
@@ -54,8 +58,9 @@ static void * acceptClients(void *socket) {
         if (clientSocket == -1)
             throw "Error on accept";
 
-        pthread_t threadId;
-        pthread_create(&threadId,NULL,&handleClient,(void *)clientSocket);
+        Task *task=new Task(handleClient,(void *)clientSocket);
+        server->taskVec.push_back(task);
+        server->pool.addTask(task);
     }
 }
 
@@ -98,8 +103,16 @@ void Server::stop() {
     CommandsManager *commandsManager= CommandsManager::getInstance();
     commandsManager->executeCommand(command,args,serverSocket);
     delete commandsManager;
+    pool.terminate();
+    for (vector<Task*>::iterator it = taskVec.begin() ; it != taskVec.end(); ++it){
+        delete *it;
+    }
     pthread_cancel(serverThreadId);
     cout<<"Server stopped"<<endl;
+}
+
+int Server::getServerSocket() const {
+    return serverSocket;
 }
 
 

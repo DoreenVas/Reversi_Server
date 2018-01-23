@@ -5,6 +5,8 @@
 #include <vector>
 #include <sys/param.h>
 #include <string>
+#include "Task.h"
+#include "ThreadPool.h"
 
 using namespace std;
 
@@ -41,10 +43,13 @@ public:
 ****************************************************************************************/
     void stop();
 
-private:
+    int getServerSocket() const;
+    ThreadPool pool;
+    vector <Task*> taskVec;
 
+private:
     int port;
-    int serverSocket; // the socket's file descriptor
+    int serverSocket;
     pthread_t serverThreadId;
 
 };
